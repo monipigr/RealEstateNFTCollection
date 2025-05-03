@@ -35,12 +35,8 @@ NextSteps:
  */
 
 contract RealEstateNFTCollection is ERC721, AccessControl {
-    // bytes32 public constant DEFAULT_ADMIN_ROLE = keccak256("DEFAULT_ADMIN_ROLE");
     bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
     bytes32 public constant TENANT_ROLE = keccak256("TENANT_ROLE");
-    // address OWNER_ROLE;
-    // address TENANT_ROLE;
-
 
     string public baseUri;
     uint256 propertyId;
