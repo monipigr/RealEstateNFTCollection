@@ -38,8 +38,8 @@ contract RealEstateNFTCollection is ERC721, AccessControl {
     bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
     bytes32 public constant TENANT_ROLE = keccak256("TENANT_ROLE");
 
+    uint256 currentPropertyId;
     string public baseUri;
-    uint256 propertyId;
 
     uint256 public mintFee;
     uint256 collectedFees;
@@ -52,7 +52,10 @@ contract RealEstateNFTCollection is ERC721, AccessControl {
         bool hasPool;
     }
 
-    mapping(address => Property) userProperties;
+    mapping(address => Property[]) public userProperties;
+
+    event MintProperty(address userAddress_, uint256 propertyId_);
+
 
     constructor(string memory name_, string memory symbol_, uint256 mintFee_) ERC721(name_, symbol_) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -64,14 +67,35 @@ contract RealEstateNFTCollection is ERC721, AccessControl {
         return super.supportsInterface(interfaceId);
     }
 
-
-    function mintProperty(uint256 propertyValue_) external {
-        // Mintea propiedad 
-        // Aumenta conteo de propiedades minteadas (propertyId) --> sería el equivalente a tokenID. Pero no sé si es mejor llamarle tokenID o está bien con propertID
-        // Añade propiedad al mapping de propiedades de dicho usuario
+    /// @notice Mints a new property NFT and stores its metadata. Calculates and collects the minting fee, and emits an event.
+    /// @param propertyValue_ Market value of the property in wei
+    /// @param propertySquareMeters_ Total surface of the property in square meters
+    /// @param image_ URI string pointing to the property image (e.g. IPFS)
+    /// @param hasPool_ Whether the property has a pool (true/false)
+    function mintProperty(uint256 propertyValue_, uint256 propertySquareMeters_, string memory image_, bool hasPool_) external payable {
         // Calcula fee
+        uint256 mintedFee =  (propertyValue_ * mintFee) / 100;
+        // Valida que se envía el eth
+        require(msg.value >= mintedFee, "Insfficient fee");
         // Añade fee al sumatorio de fees (collectedFees)
+        collectedFees += mintedFee;
+        // Mintea propiedad 
+        _safeMint(msg.sender, currentPropertyId);
+        // Aumenta conteo de propiedades minteadas (propertyId) --> sería el equivalente a tokenID. Pero no sé si es mejor llamarle tokenID o está bien con propertID
+        uint256 id = currentPropertyId;
+        currentPropertyId++;
+        // Añade propiedad al mapping de propiedades de dicho usuario
+        Property memory propertyMinted = Property({
+            propertyId: id,
+            propertyValue: propertyValue_,
+            squareMeters: propertySquareMeters_,
+            image: image_,
+            hasPool: hasPool_
+        });
+        userProperties[msg.sender].push(propertyMinted);
+
         // Emite evento
+        emit MintProperty(msg.sender, id);
     }
 
 }
