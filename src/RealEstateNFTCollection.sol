@@ -75,7 +75,7 @@ contract RealEstateNFTCollection is ERC721, AccessControl {
     /// @param hasPool_ Whether the property has a pool (true/false)
     function mintProperty(uint256 propertyValue_, uint256 propertySquareMeters_, string memory image_, bool hasPool_) external payable {
         uint256 mintedFee =  (propertyValue_ * mintFee) / 100;
-        require(msg.value >= mintedFee, "Insfficient fee");
+        require(msg.value >= mintedFee, "Insufficient fee");
         collectedFees += mintedFee;
 
         _safeMint(msg.sender, currentPropertyId);
