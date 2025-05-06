@@ -38,11 +38,11 @@ contract RealEstateNFTCollection is ERC721, AccessControl {
     bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
     bytes32 public constant TENANT_ROLE = keccak256("TENANT_ROLE");
 
-    uint256 currentPropertyId;
+    uint256 public currentPropertyId;
     string public baseUri;
 
     uint256 public mintFee;
-    uint256 collectedFees;
+    uint256 public collectedFees;
 
     struct Property {
         uint256 propertyId;
@@ -54,13 +54,14 @@ contract RealEstateNFTCollection is ERC721, AccessControl {
 
     mapping(address => Property[]) public userProperties;
 
-    event MintProperty(address userAddress_, uint256 propertyId_);
+    event MintProperty(address indexed userAddress_, uint256 indexed propertyId_);
 
 
-    constructor(string memory name_, string memory symbol_, uint256 mintFee_) ERC721(name_, symbol_) {
+    constructor(string memory name_, string memory symbol_, uint256 mintFee_, string memory baseUri_) ERC721(name_, symbol_) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(OWNER_ROLE, msg.sender);
         mintFee = mintFee_;
+        baseUri = baseUri_;
     }
 
     function supportsInterface(bytes4 interfaceId) public view override(ERC721, AccessControl) returns (bool) {
@@ -73,18 +74,15 @@ contract RealEstateNFTCollection is ERC721, AccessControl {
     /// @param image_ URI string pointing to the property image (e.g. IPFS)
     /// @param hasPool_ Whether the property has a pool (true/false)
     function mintProperty(uint256 propertyValue_, uint256 propertySquareMeters_, string memory image_, bool hasPool_) external payable {
-        // Calcula fee
         uint256 mintedFee =  (propertyValue_ * mintFee) / 100;
-        // Valida que se envía el eth
         require(msg.value >= mintedFee, "Insfficient fee");
-        // Añade fee al sumatorio de fees (collectedFees)
         collectedFees += mintedFee;
-        // Mintea propiedad 
+
         _safeMint(msg.sender, currentPropertyId);
-        // Aumenta conteo de propiedades minteadas (propertyId) --> sería el equivalente a tokenID. Pero no sé si es mejor llamarle tokenID o está bien con propertID
+
         uint256 id = currentPropertyId;
         currentPropertyId++;
-        // Añade propiedad al mapping de propiedades de dicho usuario
+
         Property memory propertyMinted = Property({
             propertyId: id,
             propertyValue: propertyValue_,
@@ -94,7 +92,6 @@ contract RealEstateNFTCollection is ERC721, AccessControl {
         });
         userProperties[msg.sender].push(propertyMinted);
 
-        // Emite evento
         emit MintProperty(msg.sender, id);
     }
 

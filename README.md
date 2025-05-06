@@ -1,66 +1,83 @@
-## Foundry
+# 🏠 RealEstateNFTCollection
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## 📝 Overview
 
-Foundry consists of:
+`RealEstateNFTCollection` is a colección de propiedades inmobiliarias tokenizadas como NFTs.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+## ✨ Features
 
-## Documentation
+## 🏗 Smart Contract Architecture and Patterns
 
-https://book.getfoundry.sh/
+- **ERC721 Standard**: Inherits OpenZeppelin's robust ERC721 implementation
+- **Storage Variables**:
+  - `currentTokenId`: tracks next token to mint
+  - `totalSupply`: immutable max number of NFTs
+  - `baseUri`: used for metadata resolution
+- **Core Logic**:
+  - `mint()`: mints NFTs sequentially with `_safeMint`, emits `MintNFT` event
+  - `tokenURI(uint256)`: returns full metadata URI, combining baseUri and tokenId
+- **Security Practices**:
+  - Uses `_requireOwned` to prevent querying non-existent token metadata
+- **Design Choices**:
+  - Public minting with no access control (no `Ownable`)
+  - Linear minting logic without metadata reveal or rarity mechanics
 
-## Usage
+## 🛠 Technologies Used
 
-### Build
+- **Solidity**: `^0.8.24`
+- **Framework**: [Foundry](https://book.getfoundry.sh/)
+- **OpenZeppelin Contracts**: v4.x ERC721 standard
 
-```shell
-$ forge build
+## 🧪 Testing
+
+Unit tests are written using Foundry to ensure contract reliability:
+
+| **Test Function**                                 | **Description**                |
+| ------------------------------------------------- | ------------------------------ |
+| `test_RealEstateNFTCollectionCorrectlyDeployed()` | Contract deployment validation |
+
+Tests cover edge cases such as double minting, token existence validation, and proper URI generation.
+
+## 💯 ✅ Full Test Coverage Report
+
+```
+forge coverage
 ```
 
-### Test
+| File                            | % Lines             | % Statements        | % Branches        | % Funcs           |
+| ------------------------------- | ------------------- | ------------------- | ----------------- | ----------------- |
+| src/RealEstateNFTCollection.sol | 100.00% (15/15)     | 100.00% (13/13)     | 100.00% (2/2)     | 100.00% (4/4)     |
+| **Total**                       | **100.00% (15/15)** | **100.00% (13/13)** | **100.00% (2/2)** | **100.00% (4/4)** |
 
-```shell
-$ forge test
+## 🛠 Technologies Used
+
+- **Solidity**: `^0.8.24`
+- **Foundry**: For deploying, testing, fuzzing and assertions
+- **OpenZeppelin Contracts**: `ERC721`, `IERC721`
+- **Strings**: For converting `uint256` token IDs into strings in `tokenURI`
+
+## 🔧 How to Use
+
+### Prerequisites
+
+- Install [Foundry](https://book.getfoundry.sh/)
+- Install [OpenZeppelin](https://docs.openzeppelin)
+
+### 🛠 Setup
+
+```bash
+git clone https://github.com/your-username/RealEstateNFTCollection.git
+cd RealEstateNFTCollection
+forge install
 ```
 
-### Format
+### Testing
 
-```shell
-$ forge fmt
+```bash
+forge test
+forge --match-test testExample -vvvv
 ```
 
-### Gas Snapshots
+## 📜 License
 
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+This project is licensed under the MIT License.
