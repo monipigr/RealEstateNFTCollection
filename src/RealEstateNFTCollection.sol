@@ -55,6 +55,7 @@ contract RealEstateNFTCollection is ERC721, AccessControl {
     mapping(address => Property[]) public userProperties;
 
     event MintProperty(address indexed userAddress_, uint256 indexed propertyId_);
+    event FeesWithdrawn(address indexed to, uint256 amount);
 
 
     constructor(string memory name_, string memory symbol_, uint256 mintFee_, string memory baseUri_) ERC721(name_, symbol_) {
@@ -76,7 +77,7 @@ contract RealEstateNFTCollection is ERC721, AccessControl {
     function mintProperty(uint256 propertyValue_, uint256 propertySquareMeters_, string memory image_, bool hasPool_) external payable {
         uint256 mintedFee =  (propertyValue_ * mintFee) / 100;
         require(msg.value >= mintedFee, "Insufficient fee");
-        collectedFees += mintedFee;
+        collectedFees += msg.value;
 
         _safeMint(msg.sender, currentPropertyId);
 
@@ -93,6 +94,16 @@ contract RealEstateNFTCollection is ERC721, AccessControl {
         userProperties[msg.sender].push(propertyMinted);
 
         emit MintProperty(msg.sender, id);
+    }
+
+    /// @notice Should allow only owner role to withdraw collected fees
+    function withdrawFees() external onlyRole(OWNER_ROLE) {
+        uint256 amount = collectedFees;
+        collectedFees = 0;
+        (bool sent, ) = msg.sender.call{value: amount}("");
+        require(sent, "Transfer failed");
+
+        emit FeesWithdrawn(msg.sender, amount);
     }
 
 }

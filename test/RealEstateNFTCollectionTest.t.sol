@@ -65,13 +65,13 @@ contract RealEstateNFTCollectionTest is Test {
     }
 
     /// @notice Should accept minting if the fee sent is higher than required
-    function test_mintPropertyWithExtraFee() external {
+    function test_mintPropertyWithExtraFee() external payable {
         vm.deal(user1, 100 ether);
         vm.startPrank(user1);
 
         uint256 propertyValue_ = 40 ether; 
         uint256 expectedFee = (propertyValue_ * realEstateNFTCol.mintFee()) / 100;
-        realEstateNFTCol.mintProperty{value: expectedFee - 1}(
+        realEstateNFTCol.mintProperty{value: expectedFee + 1 ether}(
             propertyValue_, 
             40, 
             "ipfs://uriimage", 
@@ -79,7 +79,7 @@ contract RealEstateNFTCollectionTest is Test {
         );
         assertEq(realEstateNFTCol.currentPropertyId(), 1);
         assertEq(realEstateNFTCol.ownerOf(0), user1);
-        assertEq(realEstateNFTCol.collectedFees(), expectedFee);
+        assertEq(realEstateNFTCol.collectedFees(), expectedFee + 1 ether);
 
         vm.stopPrank();
     }
@@ -102,6 +102,29 @@ contract RealEstateNFTCollectionTest is Test {
 
         vm.stopPrank();
     }
+
+    // function testFuzz_mintProperty_updatesStateCorrectly(uint256 propertyValue_, uint256 propertySquareMeters_, bool hasPool_) external {
+    //     vm.assume(propertyValue_ >= 10 ether && propertyValue_ <= 1000 ether);
+    //     vm.assume(propertySquareMeters_ > 10 && propertySquareMeters_ <= 10000);
+    //     // string memory image_ = "ipfs://mock";
+
+    //     vm.deal(user1, 1000 ether);
+    //     vm.startPrank(user1);
+
+    //     uint256 fee = (propertyValue_ * realEstateNFTCol.mintFee()) / 100;
+
+    //     realEstateNFTCol.mintProperty{value: fee}(
+    //         propertyValue_,
+    //         propertySquareMeters_, 
+    //         "ipfs://mock", 
+    //         hasPool_
+    //     );
+
+    //     assertEq(realEstateNFTCol.currentPropertyId(), 1);
+
+    //     vm.stopPrank();
+    // }
+    
 
     
 
