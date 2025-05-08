@@ -56,6 +56,7 @@ contract RealEstateNFTCollection is ERC721, AccessControl {
 
     event MintProperty(address indexed userAddress_, uint256 indexed propertyId_);
     event FeesWithdrawn(address indexed to, uint256 amount);
+    event BurnProperty(address indexed userAddress_, uint256 indexed propertyId_);
 
 
     constructor(string memory name_, string memory symbol_, uint256 mintFee_, string memory baseUri_) ERC721(name_, symbol_) {
@@ -100,10 +101,36 @@ contract RealEstateNFTCollection is ERC721, AccessControl {
     function withdrawFees() external onlyRole(OWNER_ROLE) {
         uint256 amount = collectedFees;
         collectedFees = 0;
+
         (bool sent, ) = msg.sender.call{value: amount}("");
         require(sent, "Transfer failed");
 
         emit FeesWithdrawn(msg.sender, amount);
     }
+
+    /// @notice Burns a property token if the caller owns it and has TENANT_ROLE
+    /// @param tokenId The ID of the property NFT to be burned
+    function burnProperty(uint256 tokenId) external onlyRole(TENANT_ROLE) {
+        // Recuperar el propertyID del struct Property
+        uint256 propertyId_ = property.propertyId;
+        // Pasarlo a la función burn 
+        _burn(propertyId_);
+        // Borrarlo del array de propiedades de dicho propietario
+        delete userProperties[msg.sender].propertyId; //esto falla
+        // Emitir evento
+        emit BurnProperty(msg.sender, property);
+    }
+
+    function _baseURI() internal override view virtual returns (string memory) {
+        return baseUri;
+    }
+
+    function tokenURI(uint256 tokenId) public view override virtual returns (string memory) {
+        _requireOwned(tokenId);
+
+        string memory baseURI = _baseURI();
+        return bytes(baseURI).length > 0 ? string.concat(baseURI, tokenId.toString(), ".json") : "";
+    }
+
 
 }

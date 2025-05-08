@@ -9,6 +9,7 @@ contract RealEstateNFTCollectionTest is Test {
     RealEstateNFTCollection public realEstateNFTCol;
     uint256 mintFee = 1;
     address user1 = vm.addr(1);
+    address owner = vm.addr(2);
     event MintProperty(address indexed userAddress_, uint256 indexed propertyId_);
 
 
@@ -19,6 +20,7 @@ contract RealEstateNFTCollectionTest is Test {
         uint256 mintFee_ = 1;
         string memory baseUri_ = "ipfs://:TODO";
         realEstateNFTCol = new RealEstateNFTCollection(name_, symbol_, mintFee_, baseUri_);
+        realEstateNFTCol.grantRole(realEstateNFTCol.OWNER_ROLE(), owner );
     }
 
     /// @notice Should deploy the contract and assign a non-zero address
@@ -103,28 +105,57 @@ contract RealEstateNFTCollectionTest is Test {
         vm.stopPrank();
     }
 
-    // function testFuzz_mintProperty_updatesStateCorrectly(uint256 propertyValue_, uint256 propertySquareMeters_, bool hasPool_) external {
-    //     vm.assume(propertyValue_ >= 10 ether && propertyValue_ <= 1000 ether);
-    //     vm.assume(propertySquareMeters_ > 10 && propertySquareMeters_ <= 10000);
-    //     // string memory image_ = "ipfs://mock";
+    /// @notice Should allow the owner to withdraw fees 
+    function test_withdrawFees_correctly() external {
+        vm.deal(user1, 100 ether);
+        vm.startPrank(user1);
 
-    //     vm.deal(user1, 1000 ether);
-    //     vm.startPrank(user1);
+        uint256 propertyValue_ = 40 ether; 
+        uint256 expectedFee = (propertyValue_ * realEstateNFTCol.mintFee()) / 100;
+        realEstateNFTCol.mintProperty{value: expectedFee}(
+            propertyValue_, 
+            40, 
+            "ipfs://uriimage", 
+            true
+        );
 
-    //     uint256 fee = (propertyValue_ * realEstateNFTCol.mintFee()) / 100;
+        vm.stopPrank();
 
-    //     realEstateNFTCol.mintProperty{value: fee}(
-    //         propertyValue_,
-    //         propertySquareMeters_, 
-    //         "ipfs://mock", 
-    //         hasPool_
-    //     );
+        vm.startPrank(owner);
+        
+        uint256 ownerBalanceBefore = owner.balance;
+        uint256 contractBalanceBefore = address(realEstateNFTCol).balance;
+        realEstateNFTCol.withdrawFees();
+        uint256 ownerBalanceAfter = owner.balance;
+        uint256 contractBalanceAfter = address(realEstateNFTCol).balance;
 
-    //     assertEq(realEstateNFTCol.currentPropertyId(), 1);
+        assertEq(contractBalanceAfter, 0);
+        assertEq(ownerBalanceAfter, ownerBalanceBefore + contractBalanceBefore);
+        assertEq(contractBalanceAfter, 0);
 
-    //     vm.stopPrank();
-    // }
-    
+        vm.stopPrank();
+    }
+
+    /// @notice Should revert if a non-owner attempts to withdraw fees
+    function test_withdrawFees_revertsIfNotOwner() external {
+        vm.deal(user1, 100 ether);
+        vm.startPrank(user1);
+
+        uint256 propertyValue_ = 40 ether; 
+        uint256 expectedFee = (propertyValue_ * realEstateNFTCol.mintFee()) / 100;
+        realEstateNFTCol.mintProperty{value: expectedFee}(
+            propertyValue_, 
+            40, 
+            "ipfs://uriimage", 
+            true
+        );
+        
+        vm.expectRevert();
+        realEstateNFTCol.withdrawFees();
+        assertEq(realEstateNFTCol.collectedFees(), expectedFee);
+
+        vm.stopPrank();
+    }
 
     
 
