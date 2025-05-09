@@ -1,0 +1,10 @@
+{
+  "name": "Real Estate NFT 0",
+  "description": "Square Property",
+  "image": "ipfs://bafybeibxjqhhyyt3ejyixriq7pncxh2sr534fn3quer23bwmyjidznu5qe",
+  "attributes": [
+    { "trait_type": "Property Value", "value": "40" },
+    { "trait_type": "Square Meters", "value": "270" },
+    { "trait_type": "Has Pool", "value": true }
+  ]
+}

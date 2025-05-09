@@ -2,7 +2,6 @@
 pragma solidity ^0.8.13;
 
 import "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
-import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 import "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import "../lib/openzeppelin-contracts/contracts/utils/Strings.sol";
 
@@ -13,7 +12,7 @@ Conditions:
 - Solo el admin puede cambiar la mintFee (OWNER_ROLE)
 
 - Mint: Solo el propietario de la casa puede mintearla (PropertyAdmin)
-- Se deben pasar las características de la casa (valor, m2, imagen, nºhab, nºbaños, garage si/no, piscina si/no)
+- Se deben pasar las características de la casa (valor, m2, imagen, piscina si/no)
 - Se emite un evento cada vez que mintea una nueva propiedad (MintProperty)
 - ¿Cómo se construirá el json dinámicamente según la características introducidas por el usuario? 
 
@@ -35,6 +34,8 @@ NextSteps:
  */
 
 contract RealEstateNFTCollection is ERC721, AccessControl {
+    using Strings for uint256;
+
     bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
     bytes32 public constant TENANT_ROLE = keccak256("TENANT_ROLE");
 
@@ -111,14 +112,26 @@ contract RealEstateNFTCollection is ERC721, AccessControl {
     /// @notice Burns a property token if the caller owns it and has TENANT_ROLE
     /// @param tokenId The ID of the property NFT to be burned
     function burnProperty(uint256 tokenId) external onlyRole(TENANT_ROLE) {
-        // Recuperar el propertyID del struct Property
-        uint256 propertyId_ = property.propertyId;
-        // Pasarlo a la función burn 
-        _burn(propertyId_);
-        // Borrarlo del array de propiedades de dicho propietario
-        delete userProperties[msg.sender].propertyId; //esto falla
-        // Emitir evento
-        emit BurnProperty(msg.sender, property);
+        require(ownerOf(tokenId) == msg.sender, "Not the property owner");
+
+        _burn(tokenId);
+        
+        Property[] storage properties = userProperties[msg.sender];
+        for (uint256 i = 0; i < properties.length; i++) {
+            if (properties[i].propertyId == tokenId) {
+                properties[i] = properties[properties.length - 1];
+                properties.pop();
+                break;
+            }
+        }
+
+        emit BurnProperty(msg.sender, tokenId);
+    }
+
+    /// @notice Allow the owner to update the minting fee as a percentage
+    /// @param newMintFee_ New mint fee percentage (in whole numbers)
+    function setMintFee(uint256 newMintFee_) external onlyRole(OWNER_ROLE) {
+        mintFee = newMintFee_;
     }
 
     function _baseURI() internal override view virtual returns (string memory) {

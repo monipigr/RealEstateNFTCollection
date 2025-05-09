@@ -16,7 +16,7 @@ contract DeployRealEstateNFTCollection is Script {
         string memory name_ = "Real Estate NFT Collection";
         string memory symbol_ = "RLC";
         uint256 mintFee_ = 1;
-        string memory baseUri_ = "ipfs//:TODO";
+        string memory baseUri_ = "ipfs://bafybeifjyapb4dzh2u7ovha22juknejj75tal4srtdef6ci53pbphp5fiy";
         RealEstateNFTCollection realEstateNFTCol = new RealEstateNFTCollection(name_, symbol_, mintFee_, baseUri_);
 
         vm.stopBroadcast();

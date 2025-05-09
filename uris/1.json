@@ -1,0 +1,10 @@
+{
+  "name": "Real Estate NFT 1",
+  "description": "Round Beach Property",
+  "image": "ipfs://bafybeiezv2vqkhfec4umov6s6kqcla27wuq2e5vdp6bktqovk66f3sd56m",
+  "attributes": [
+    { "trait_type": "Property Value", "value": "60" },
+    { "trait_type": "Square Meters", "value": "340" },
+    { "trait_type": "Has Pool", "value": true }
+  ]
+}
